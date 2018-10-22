@@ -17,13 +17,12 @@ const buildDigits = (start, turnCount, count, index) => {
     console.log('numberStr ', numberStr)
     return numberStr
   }
-
   return (
-    <DigitContainerStyled level={count-index} count={count}>{numString(startNum, turnCountNum)}</DigitContainerStyled>
+    <DigitContainerStyled level={index} count={count}>{numString(startNum, turnCountNum)}</DigitContainerStyled>
   )
 }
 
-const buildOdometer = (start,  end) => {
+const buildOdometer = (start, end, duration) => {
   const startDigits = start.toString().split('')
   const endDigits = end.toString().split('')
   const startCount = startDigits.length - 1
@@ -42,10 +41,10 @@ const buildOdometer = (start,  end) => {
 
 }
 
-export const Odometer = ({ start, end }) => {
+export const Odometer = ({ start, end, duration }) => {
   return (
     <div>
-      {buildOdometer(start, end)}
+      {buildOdometer(start, end, duration)}
     </div>
   )
 }
