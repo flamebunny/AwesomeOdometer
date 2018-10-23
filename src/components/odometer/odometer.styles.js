@@ -1,25 +1,13 @@
 import styled, { keyframes } from 'react-emotion'
 
-const slide = keyframes`
-  from {
-    transform: translateY(0);
+const slide = keyframes({
+  '0%': {
+    transform: 'translateY(0)'
+  },
+  '100%': {
+    transform: 'translateY(-100%) translateY(1.5rem)'
   }
-  to {
-    transform: translateY(-100%);
-  }
-`
-
-const slideDown = keyframes`
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(1.5rem);
-  }
-
-`
-
-
+})
 
 export const OdometerStyled = styled('div')({
   textShadow: '0 -1px rgba(0, 0, 0, 0.9)',
@@ -35,35 +23,38 @@ export const OdometerStyled = styled('div')({
 export const DigitContainerStyled = styled('div')(
   {
     overflow: 'hidden',
-    animation: `${slide} 1.5s linear`,
+    animationName: `${slide}`,
+    animationTimingFunction: 'linear',
     animationFillMode: 'forwards',
+    animationDuration: '1500ms',
+    animationDelay: '1000ms',
     display: 'flex',
     position: 'relative',
-
-  //  top: '-1rem',
   },
   ({ level }) =>
     {
       switch(level) {
         case 0:
           return {
-              animationDuration:  `${3*500}ms`,
-       //     top: '0.5rem',
-       //     transition: `top 1500ms`,
+  //          animationDuration:  `${3*500}ms`,
           }
-
         case 1:
           return {
-              animationDuration:  `${3*500}ms`,
-      //      top: '0.5rem',
-      //      transition: `top 1500ms`,
+  //          animationDuration:  `${3*500}ms`,
           }
         case 2:
-          return {animationDuration:  `${3*500}ms`}
-        case 3:
-          return {animationDuration:  `${1*500}ms`}
+          return {
+  //            animationDuration:  `${3*500}ms`
+            }
+        case 3: {
+          return {
+  //          animationDuration:  `${1*500}ms`
+          }
+        }
         default:
-          return {animationDuration:  `${100*500}ms`}
+          return {
+  //          animationDuration:  `${100*500}ms`
+          }
       }
     }
   ,
@@ -79,10 +70,6 @@ export const DigitStyled = styled('div')(
     borderRight: '1px solid rgba(0, 0, 0, 0.5)',
     borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
     padding: '0 0.2rem',
-    animation: `${slideDown} 1s linear`,
-    animationFillMode: 'forwards',
-    animationDuration:  `1000ms`,
-    animationDelay: `500ms`,
 
     '&:first-child': {
       borderLeft: 'none'
