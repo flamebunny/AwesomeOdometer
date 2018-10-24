@@ -1,9 +1,10 @@
+// action - turn, step
+
+
 import React from 'react'
 import { OdometerStyled, DigitStyled, DigitContainerStyled } from './odometer.styles'
 
-
-
-const numString = (start, end, turnCount) => {
+const numStringOrig = ({start, end, turnCount}) => {
   let numberStr = ''
   let startNum = start
 
@@ -17,91 +18,144 @@ const numString = (start, end, turnCount) => {
       numberStr += ((i + parseInt(startNum, 10)) % 10) + ' '   // adds index to start and gets the last character
     }
   }
-
-//  console.log('end ', end)
-//  console.log('turnCount ', turnCount)
-/*
-  if(turnCount > 10) {
-
-//    console.log('turnCount ', turnCount)
-    numberStr += end + ' '
-  }
-*/
-//  console.log('turnCount ', turnCount)
   console.log('numberStr ', numberStr)
   return numberStr
 }
 
-const buildDigits = ({ start, end, turnCount, count, index }) => {
-//  console.log('start ', start)
-//  console.log('end ', end)
+const numString = ({start, end, turnCount, action, count, index}) => {
+  // Generates the number string for rotating number
+  // Using maxTurnCount to limit length of string generted
+  // When the string is too long the number rotates so fast that it is perceived to rotate backwards
 
 
-//  const turnCountNum = parseInt(turnCount, 10) <= 20 ? parseInt(turnCount, 10) : 20
-  const turnCountNum = parseInt(turnCount, 10)
+//  const maxTurnCount = 10 + index * 5
+
+  console.log('---------------------------------------')
+  console.log('start ', start)
+  console.log('end ', end)
+  console.log('turnCount ', turnCount)
+  console.log('action ', action)
+  console.log('count ', count)
+  console.log('index ', index)
 
 
-  return (
-    <DigitContainerStyled level={index} count={count}>{numString(start, end, turnCountNum)}</DigitContainerStyled>
-  )
+  let maxTurnCount = turnCount
+
+  switch(action) {
+    case 'turn':
+      maxTurnCount = 10 + index * 5
+      break
+    case 'step':
+      maxTurnCount = turnCount
+      break
+    default:
+      maxTurnCount = turnCount
+      break
+  }
+
+  console.log('maxTurnCount ', maxTurnCount)
+
+  let numberStr = ''
+  let startNum = parseInt(start, 10)
+
+  let countRunner = startNum
+  const turns = turnCount > maxTurnCount ? maxTurnCount : turnCount
+  const tickAddition = turnCount / turns
+
+  console.log('tickAddition ', tickAddition)
+
+  numberStr = start + ' '
+  for (let i = 0; i < turns - 1; i++ )  {
+    countRunner += tickAddition
+    numberStr += (parseInt(countRunner, 10) % 10) + ' '
+  }
+  numberStr += end + ' '
+
+  console.log('numberStr ', numberStr)
+
+  return numberStr
 }
 
-const getTurns  = (start, startDigitsMatched, difference) =>  {
-  let turns = []
+const getTurns  = ({startDigitsMatched, difference}) =>  {
   let currentTurnRotation = []
   let differenceArr = []
   let turnsArr = []
   let newstartDigitsMatched = [...startDigitsMatched]
-  console.log('newstartDigitsMatched ', newstartDigitsMatched)
-  // newstartDigitsMatched.push(0)
 
   const startDigitMatchedCount = startDigitsMatched.length
-
 
   startDigitsMatched.map((digit, index) => {
     newstartDigitsMatched.shift()
     if (newstartDigitsMatched.length  === 0) {
       newstartDigitsMatched.push(0)
     }
-    let startJoined = parseInt(newstartDigitsMatched.join(''))
-    console.log('startJoined ', startJoined)
-    console.log('Math.pow(10, startDigitMatchedCount - 1 - index)', Math.pow(10, startDigitMatchedCount - 1 - index))
-    console.log('startJoined / Math.pow(10, startDigitMatchedCount - 1 - index)', startJoined / Math.pow(10, startDigitMatchedCount - 1 - index))
+    // merge array into string then convert to number
+    let startJoined = parseInt(newstartDigitsMatched.join(''), 10)
+
     currentTurnRotation.push(startJoined / Math.pow(10, startDigitMatchedCount - 1 - index))
     differenceArr.push(difference / Math.pow(10, startDigitMatchedCount -1 - index))
     turnsArr.push(Math.floor((startJoined / Math.pow(10, startDigitMatchedCount - 1 - index)) + (difference / Math.pow(10, startDigitMatchedCount - 1 - index))))
 
-
     const startJoinedString = startJoined.toString().substr(1)
-    startJoined = startJoinedString != '' ? parseInt(startJoinedString) : 0
-
-    console.log('startJoinedString ', startJoinedString)
-
-
+    startJoined = startJoinedString !== '' ? parseInt(startJoinedString, 10) : 0
+    return null
   })
+/*
   console.log('start ', start)
   console.log('startDigitsMatched ', startDigitsMatched)
   console.log('currentTurnRotation ', currentTurnRotation)
   console.log('differenceArr ', differenceArr)
+*/
   console.log('turnsArr ', turnsArr)
 
   return turnsArr
 }
 
-const buildOdometer = (start, end, duration) => {
-  const startDigits = start.toString().split('')
-  const endDigits = end.toString().split('')
+const buildOdometer = ({start, end, duration, action}) => {
+
+  console.log('duration ', duration)
+
+  let startCopy = start
+  let endCopy = end
+
+  const startHasDecimals = start % 1 !== 0
+  const endHasDecimals = end % 1 !== 0
+
+  if (startHasDecimals || endHasDecimals) {
+    startCopy = startCopy * 100
+    endCopy = endCopy * 100
+  }
+/*
+  console.log('startHasDecimals ', startHasDecimals)
+  console.log('endHasDecimals ', endHasDecimals)
+  console.log('start ', start)
+  console.log('end ', end)
+  console.log('startCopy ', startCopy)
+  console.log('endCopy ', endCopy)
+*/
+  const startDigits = startCopy.toString().split('')
+  const endDigits = endCopy.toString().split('')
+  const difference = endCopy - startCopy
   const startCount = startDigits.length
   const endCount = endDigits.length
   const countDifference = endCount - startCount
   const digitCount = Math.max(startCount,endCount)
 
-//  console.log('startCount ', startCount)
-//  console.log('endCount ', endCount)
-//  console.log('digitCount ', digitCount)
-
   let startDigitsMatched = [...startDigits]
   let endDigitsMatched = [...endDigits]
+  let rows = []
+/*
+  console.log('startDigits ', startDigits)
+  console.log('startHasDecimals ', startHasDecimals)
+  console.log('startDigitsMatched ', startDigitsMatched)
+  console.log('endDigits ', endDigits)
+  console.log('endHasDecimals ', endHasDecimals)
+  console.log('endDigitsMatched ', endDigitsMatched)
+*/
+  // start: 9
+  // end: 15
+  // startDigitsMatched: 09
+  // endDigitsMatched: 15
 
   if (countDifference > 0) {
     startDigitsMatched = Array(Math.abs(countDifference)).fill(0).concat(startDigits)
@@ -110,59 +164,35 @@ const buildOdometer = (start, end, duration) => {
     endDigitsMatched = Array(Math.abs(countDifference)).fill(0).concat(endDigits)
   }
 
-  let digitDifferenceMatched = []
-  startDigitsMatched.map((startDigit, index) => {
-    let startDigitInit = (startDigitsMatched[index] === '_' || startDigitsMatched[index] === '.') ? 0 : startDigitsMatched[index]
-    let endDigitInit = (endDigitsMatched[index] === '_' || endDigitsMatched[index] === '.') ? 0 : endDigitsMatched[index]
+  const turnsArr = getTurns({startDigitsMatched: startDigitsMatched, difference: difference})
 
-    endDigitInit = startDigitInit > endDigitInit ? endDigitInit + 10 : endDigitInit
+  for (let index = digitCount -1; index >= 0; index--) {
 
-    digitDifferenceMatched.push(Math.abs(parseInt(startDigitInit, 10) - parseInt(endDigitInit, 10)))
+    if ((startHasDecimals || endHasDecimals) && index === 1) {
+      rows.unshift(
+        <DigitStyled key='decimal'>
+          <DigitContainerStyled level={index} count={digitCount - 1} turnCount={0}>.</DigitContainerStyled>
+        </DigitStyled>
+      )
+    }
 
-    return null
-  })
-
-
-//  console.log('countDifference ', countDifference)
-//  console.log('startDigitsMatched ', startDigitsMatched)
-//  console.log('endDigitsMatched ', endDigitsMatched)
-
-  const difference = end - start
-
-  const turnsArr = getTurns(start, startDigitsMatched, difference)
-
-//  console.log('difference ', Math.pow(10, digitCount-0))
+    rows.unshift(
+      <DigitStyled key={index}>
+        <DigitContainerStyled level={index} count={digitCount - 1} turnCount={parseInt(turnsArr[index], 10)} action={action} duration={duration}>{numString({start: parseInt(startDigitsMatched[index], 10), end: parseInt(endDigitsMatched[index], 10), turnCount: parseInt(turnsArr[index], 10), action: action, count: digitCount - 1, index: index})}</DigitContainerStyled>
+      </DigitStyled>
+    )
+  }
 
   return (
-    <OdometerStyled>
-
-
-
-      {digitDifferenceMatched.map((digitDiff, index) => {
-  //      console.log('digitDiff ', digitDiff)
-  //      console.log(digitCount - 1 - index)
-  //      console.log('turnCount ', (difference / Math.pow(10, digitCount - 1 - index)))
-  //      console.log('endDigitsMatched ', endDigitsMatched)
-  //      console.log('endDigitsMatched ', endDigitsMatched[index])
-
-
-
-
-        return (<DigitStyled key={index}>{buildDigits({ start: startDigitsMatched[index], end: endDigitsMatched[index], turnCount: turnsArr[index], count: digitCount - 1, index: index })}</DigitStyled>)
-  //  return (<DigitStyled key={index}>{buildDigits({ start: startDigitsMatched[index], end: endDigitsMatched[index], turnCount: (digitDiff + Math.pow(10, index)), count: digitCount - 1, index: index })}</DigitStyled>)
-
-      })}
-    </OdometerStyled>
+    <OdometerStyled>{rows}</OdometerStyled>
   )
 
 }
 
-export const Odometer = ({ start, end, duration }) => {
+export const Odometer = ({ start, end, duration, action }) => {
   return (
     <div>
-      {buildOdometer(start, end, duration)}
+      {buildOdometer({start, end, duration, action})}
     </div>
   )
 }
-
-

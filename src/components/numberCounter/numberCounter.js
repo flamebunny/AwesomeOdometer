@@ -3,6 +3,6 @@ import { connect } from 'react-redux'
 import { Odometer } from '../odometer/odometer'
 
 export const NumberCounter = ({ randomNumber }) =>
-  <Odometer start={12} end={15} duration={2000} />
+  <Odometer start={12.50} end={26.51} duration={700} action={'turn'} />
 
 export default connect(state => state.randNum)(NumberCounter)

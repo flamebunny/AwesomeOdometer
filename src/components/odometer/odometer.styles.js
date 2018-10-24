@@ -24,40 +24,54 @@ export const DigitContainerStyled = styled('div')(
   {
     overflow: 'hidden',
     animationName: `${slide}`,
-    animationTimingFunction: 'linear',
     animationFillMode: 'forwards',
-    animationDuration: '1500ms',
     animationDelay: '1000ms',
     display: 'flex',
     position: 'relative',
   },
-  ({ level }) =>
-    {
-      switch(level) {
-        case 0:
-          return {
-  //          animationDuration:  `${3*500}ms`,
-          }
-        case 1:
-          return {
-  //          animationDuration:  `${3*500}ms`,
-          }
-        case 2:
-          return {
-  //            animationDuration:  `${3*500}ms`
-            }
-        case 3: {
-          return {
-  //          animationDuration:  `${1*500}ms`
-          }
+  ({ turnCount, action })  => {
+    switch(action) {
+      case 'turn':
+        return {
+          animationTimingFunction: 'ease-out'
         }
-        default:
-          return {
-  //          animationDuration:  `${100*500}ms`
-          }
-      }
+      case 'step':
+        return {
+          animationTimingFunction: `steps(${turnCount}, end)`
+        }
     }
-  ,
+  },
+  ({ duration }) => {
+    return {
+      animationDuration: `${duration}ms`,
+    }
+  },
+  ({ level }) =>{
+
+    switch(level) {
+      case 0:
+        return {
+//          animationDuration:  `${3*500}ms`,
+        }
+      case 1:
+        return {
+//          animationDuration:  `${3*500}ms`,
+        }
+      case 2:
+        return {
+//            animationDuration:  `${3*500}ms`
+          }
+      case 3: {
+        return {
+//          animationDuration:  `${1*500}ms`
+        }
+      }
+      default:
+        return {
+//          animationDuration:  `${100*500}ms`
+        }
+    }
+  },
 )
 
 export const DigitStyled = styled('div')(
