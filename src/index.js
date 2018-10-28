@@ -1,13 +1,21 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import 'bootstrap/dist/css/bootstrap-reboot.min.css'
-import { store } from './store'
-import { App } from './App'
+import createStore from './store/store'
+import App from './App'
 
-ReactDOM.render(
-  <Provider store={store}>
+const store = createStore()
+
+const render = () => ReactDOM.render(<Provider store={store}>
     <App />
   </Provider>,
-document.getElementById('root'))
+  document.getElementById('root')
+)
 
+render()
+
+if (module.hot) {
+  module.hot.accept('./App', () => {
+    render()
+  })
+}

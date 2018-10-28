@@ -5,52 +5,60 @@ import { OdometerStyled, DigitStyled, DigitContainerStyled } from './odometer.st
 /*
 
   Usage:
-    <Odometer start={12.50} end={26.51} duration={700} action={'turn'} />
+    <Odometer start={12.50} end={26.51} duration={700} animation={'turn'} />
 
   Options:
     start: start value
     end: end value
+    prefix: string value shown before value
     duration: animation duration
-    action: animation types [turn, step]
-      // turn - rotates digits
+      // 1000 [Default]
+    animation: animation types
+      // turn [Default] - rotates digits
       // step - changes digits
-
-  Future options:
-    themes: foreground/background colors
-    animation-timing: [linear, ease-in, ease-out, custom]
-
+    maxTurnCount: maximum number of turns for each digit
+      // '10' [Default] (+ index*2, so each digit moves out of sync)
+      // '0' - max turn count - warning, can be in the thousands if start/end value is more than 4 digits eg. 10.00
+      // 'customvalue'  (+ index*2, so each digit moves out of sync)
+    startAnim: set to true to start
+      // false [Default]
+      // true
+    viewport: gap in which value can be seen rotating
+      // 1.7 [Default]
+    easing: custom animation timing
+      // ease-out [Default]
+      // ease-in
+      // linear
+      // custom eg: cubic-bezier(0,0,1,-1.49)
+    theme: color theme
+      // no theme [default]
+      // dark
+      // light
+      // custom {background, color, border}
+    custom: customize parts of the theme
+      // borderLeft
+      // borderRight
+      // padding
 
 */
 /* ****************************************** */
 
-const NumString = ({start, end, turnCount, action, count, index}) => {
+const NumString = ({start, end, direction, turnCount, maxTurns, index}) => {
   // Generates the number string for rotating number
   // Using maxTurnCount to limit length of string generted
   // When the string is too long the number rotates so fast that it is perceived to rotate backwards
 
-  let maxTurnCount = turnCount
-  switch(action) {
-    case 'turn':
-      maxTurnCount = 10
-      break
-    case 'step':
-      maxTurnCount = turnCount
-      break
-    default:
-      maxTurnCount = turnCount
-      break
-  }
-
   let numberStr = ''
-  let countRunner = start
-  const turns = turnCount > maxTurnCount ? maxTurnCount : turnCount
-  const tickAddition = turns !== 0 ? turnCount / turns : 0
+  let countRunner = direction === 'forward' ? start : start + Math.pow(10, index)
+
+  const turns = maxTurns ? maxTurns : turnCount
+  const tickAddition = turns !== 0 ? Math.floor(turnCount / turns) : 0
 
   // returns start if there are no turns
   if (turns !== 0) {
     numberStr = start + ' '
     for (let i = 0; i < turns - 1; i++)  {
-      countRunner += tickAddition
+      countRunner = direction === 'forward' ? countRunner += tickAddition : countRunner -= tickAddition
       numberStr += (Math.floor(countRunner) % 10) + ' '
     }
     numberStr += end + ''
@@ -90,15 +98,16 @@ const GetTurns  = ({startDigitsMatched, difference}) =>  {
   return turnsArr
 }
 
-export const Odometer = ({ start, end, duration = 700, action = 'turn', startAnim = true, prefix = '' }) => {
+export const Odometer = ({ start, end, duration = 1000, animation = 'turn', maxTurnCount = 10, startAnim = true, prefix = '', viewport = 1.7, easing = 'ease-out', theme = 'none', customStyling =  {} }) => {
 
-  // Math.floor prevents weird numbers from appearing
+  // Math.round prevents weird numbers from appearing
   // eg multiplying 17.51 by 100 produces 1751.0000000000002
+  const direction = end > start ? 'forward' : 'backward'
   const startCopy = Math.round(start * 100)
   const endCopy = Math.round(end * 100)
   const startDigits = startCopy.toString().split('')
   const endDigits = endCopy.toString().split('')
-  const difference = endCopy - startCopy
+  const difference = Math.abs(endCopy - startCopy)
   const startCount = startDigits.length
   const endCount = endDigits.length
   const countDifference = endCount - startCount
@@ -114,36 +123,39 @@ export const Odometer = ({ start, end, duration = 700, action = 'turn', startAni
   }
 
   const turnsArr = GetTurns({ startDigitsMatched, difference })
-
   const rows = []
 
   // Prefix
   if (prefix !== '') {
     rows.push(
-      <DigitStyled key={'prefix'}>
-        <DigitContainerStyled count={digitCount - 1} turnCount={0} startAnim={startAnim}>{prefix}</DigitContainerStyled>
+      <DigitStyled key={'prefix'} viewport={viewport} theme={theme} customStyling={customStyling}>
+        <DigitContainerStyled count={digitCount - 1} turnCount={0} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>{prefix}</DigitContainerStyled>
       </DigitStyled>
     )
   }
 
   for (let index = 0; index < digitCount; index++) {
+    // Capped at 1000 turns
+    const turnCount = turnsArr[index] > 1000 ? 1000 : turnsArr[index]
+    const maxTurns = Math.min((maxTurnCount === 0 ? turnCount : maxTurnCount + index * 2), turnCount)
+
     rows.push(
-      <DigitStyled key={index}>
-        <DigitContainerStyled count={digitCount - 1} turnCount={turnsArr[index]} action={action} duration={duration} startAnim={startAnim}>{NumString({ start: parseInt(startDigitsMatched[index], 10), end: parseInt(endDigitsMatched[index], 10), turnCount: turnsArr[index], action, count: digitCount - 1, index })}</DigitContainerStyled>
+      <DigitStyled key={index} viewport={viewport} theme={theme} customStyling={customStyling}>
+        <DigitContainerStyled count={digitCount - 1} turnCount={maxTurns} animation={animation} duration={duration} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>{NumString({ start: parseInt(startDigitsMatched[index], 10), end: parseInt(endDigitsMatched[index], 10), direction, turnCount: turnsArr[index], maxTurns, index })}</DigitContainerStyled>
       </DigitStyled>
     )
 
     // Decimal point added 2 digits from the end
     if (index === digitCount - 3) {
       rows.push(
-        <DigitStyled isDecimal={true} key='decimal'>
-          <DigitContainerStyled count={digitCount - 1} turnCount={0} startAnim={startAnim}>.</DigitContainerStyled>
+        <DigitStyled isDecimal={true} key='decimal' viewport={viewport} theme={theme} customStyling={customStyling}>
+          <DigitContainerStyled count={digitCount - 1} turnCount={0} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>.</DigitContainerStyled>
         </DigitStyled>
       )
     }
   }
 
   return (
-    <OdometerStyled>{rows}</OdometerStyled>
+    <OdometerStyled theme={theme}>{rows}</OdometerStyled>
   )
 }

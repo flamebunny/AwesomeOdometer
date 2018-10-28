@@ -1,17 +1,83 @@
 import styled, { keyframes } from 'react-emotion'
 
-const slide = keyframes({
+const slide = ( viewport ) => keyframes({
   '0%': {
     transform: 'translateY(0)'
   },
   '100%': {
-    transform: 'translateY(-100%) translateY(1.7rem)'
-  }
+    transform: `translateY(-100%) translateY(${viewport}em)`
+  },
 })
 
-export const OdometerStyled = styled('div')({
-  overflow: 'hidden'
-})
+export const OdometerStyled = styled('div')(
+  {
+    display: 'inline-block',
+    overflow: 'hidden',
+  },
+  ({ theme }) => {
+    switch (theme) {
+      case 'light':
+        return {
+          background: '#F4F4F4',
+          boxShadow: 'inset 0 2px 8px -2px #000',
+          color: 'rgba(0, 0, 0, 0.9)',
+          borderRadius: '2px',
+        }
+      case 'dark':
+        return {
+          background: '#222',
+          boxShadow: 'inset 0 2px 8px -2px #000',
+          color: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '2px',
+        }
+      default:
+        return {}
+    }
+  }
+)
+
+export const DigitStyled = styled('div')(
+  {
+    display: 'inline-block',
+    position: 'relative',
+    boxSizing: 'unset',
+  },
+  ({ viewport }) => ({
+    height: `${viewport}em`,
+  }),
+  ({ isDecimal }) => ({
+    width: isDecimal ? '0.3em' : '0.6em'
+  }),
+  ({ theme }) => {
+    switch (theme) {
+      case 'light':
+        return {
+          borderRight: '1px solid rgba(255, 255, 255, 0.5)',
+          borderLeft: '1px solid rgba(0, 0, 0, 0.05)',
+          padding: '0 0.2rem',
+          '::first-child': {
+            borderLeft: 'none'
+          },
+        }
+      case 'dark':
+        return {
+          borderRight: '1px solid rgba(0, 0, 0, 0.5)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
+          padding: '0 0.2rem',
+          '::first-child': {
+            borderLeft: 'none'
+          },
+        }
+      default:
+        return {}
+    }
+  },
+  ({ customStyling }) => ({
+    borderLeft: customStyling.borderLeft,
+    borderRight: customStyling.borderRight,
+    padding: customStyling.padding
+  }),
+)
 
 export const DigitContainerStyled = styled('div')(
   {
@@ -19,15 +85,19 @@ export const DigitContainerStyled = styled('div')(
     animationFillMode: 'forwards',
     display: 'flex',
     position: 'relative',
+    animationDelay: '1000ms',
   },
-  ({ startAnim }) => ({
-    animationName: startAnim ? `${slide}` : 'none',
+  ({ viewport }) => ({
+    lineHeight: viewport,
   }),
-  ({ turnCount, action })  => {
-    switch (action) {
+  ({ startAnim, viewport }) => ({
+    animationName: startAnim ? `${slide(viewport)}` : 'none',
+  }),
+  ({ turnCount, animation, easing })  => {
+    switch (animation) {
       case 'turn':
         return {
-          animationTimingFunction: 'ease-out'
+          animationTimingFunction: easing
         }
       case 'step':
         return {
@@ -35,7 +105,7 @@ export const DigitContainerStyled = styled('div')(
         }
       default:
         return {
-          animationTimingFunction: 'ease-out'
+          animationTimingFunction: easing
         }
     }
   },
@@ -44,14 +114,3 @@ export const DigitContainerStyled = styled('div')(
   })
 )
 
-export const DigitStyled = styled('div')(
-  {
-    display: 'inline-block',
-    height: '1.7rem',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  ({ isDecimal }) => ({
-    width: isDecimal ? '0.4rem' : '0.8rem'
-  })
-)

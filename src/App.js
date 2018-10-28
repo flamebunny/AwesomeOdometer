@@ -1,14 +1,22 @@
 import React from 'react'
+import styled from 'react-emotion'
+import './index.css'
+import DevTools from './DevTools'
 import NumberCounter from './components/numberCounter/numberCounter'
-import RandomizeButton from './components/randomizeButton/randomizeButton'
+import { inDevelopmentMode } from 'utils/development'
 
-export const App = () => {
-  return (
-    <div>
-      <NumberCounter  />
+const DevToolsStyled = styled('div')({
+  width: '100%',
+  position: 'absolute',
+  left: 0,
+  bottom: 0,
+  backgroundColor: 'black'
+})
 
-    </div>
-  )
-}
-
-
+export default () =>
+  <div>
+    <NumberCounter  />
+    {inDevelopmentMode() ? <DevToolsStyled>
+      <DevTools />
+    </DevToolsStyled> : null}
+  </div>
