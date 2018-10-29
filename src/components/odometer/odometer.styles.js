@@ -1,11 +1,21 @@
 import styled, { keyframes } from 'react-emotion'
 
-const slide = ( viewport ) => keyframes({
+
+const slideUp = ( viewport ) => keyframes({
   '0%': {
     transform: 'translateY(0)'
   },
   '100%': {
     transform: `translateY(-100%) translateY(${viewport}em)`
+  },
+})
+
+const slideDown = ( viewport ) => keyframes({
+  '0%': {
+    transform: `translateY(-100%) translateY(${viewport}em)`
+  },
+  '100%': {
+    transform: 'translateY(0%)'
   },
 })
 
@@ -90,8 +100,9 @@ export const DigitContainerStyled = styled('div')(
   ({ viewport }) => ({
     lineHeight: viewport,
   }),
-  ({ startAnim, viewport }) => ({
-    animationName: startAnim ? `${slide(viewport)}` : 'none',
+  ({ startAnim, viewport, direction }) => ({
+    transform:  direction === 'forward' ? 'translateY(0)' : 'translateY(-100%) translateY(1.7em)',
+    animationName: startAnim ? direction === 'forward' ? `${slideUp(viewport)}` : `${slideDown(viewport)}` : 'none',
   }),
   ({ turnCount, animation, easing })  => {
     switch (animation) {

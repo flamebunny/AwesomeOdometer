@@ -43,6 +43,11 @@ import { OdometerStyled, DigitStyled, DigitContainerStyled } from './odometer.st
 */
 /* ****************************************** */
 
+function reverse(str){
+  return str ? reverse(str.substr(1)) + str[0] : str
+ }
+
+
 const NumString = ({start, end, direction, turnCount, maxTurns, index}) => {
   // Generates the number string for rotating number
   // Using maxTurnCount to limit length of string generted
@@ -66,10 +71,12 @@ const NumString = ({start, end, direction, turnCount, maxTurns, index}) => {
     numberStr = start + ''
   }
 
+  numberStr = direction === 'forward' ? numberStr : reverse(numberStr)
+
   return numberStr
 }
 
-const GetTurns  = ({startDigitsMatched, difference}) =>  {
+const GetTurns  = ({startDigitsMatched, difference, direction}) =>  {
   // Calculates how many turns each digit needs to make to move from start to end number
 
   const currentTurnRotation = []
@@ -77,8 +84,12 @@ const GetTurns  = ({startDigitsMatched, difference}) =>  {
   const turnsArr = []
   const newstartDigitsMatched = [...startDigitsMatched]
   const startDigitMatchedCount = startDigitsMatched.length
+    console.log('startDigitsMatched ', startDigitsMatched)
+    console.log('newstartDigitsMatched ', newstartDigitsMatched)
 
-  startDigitsMatched.map((digit, index) => {
+
+    startDigitsMatched.map((digit, index) => {
+    // remove first item from array
     newstartDigitsMatched.shift()
     if (newstartDigitsMatched.length  === 0) {
       newstartDigitsMatched.push('0')
@@ -86,14 +97,26 @@ const GetTurns  = ({startDigitsMatched, difference}) =>  {
     // merge array into string then convert to number
     let startJoined = parseInt(newstartDigitsMatched.join(''), 10)
 
+    // What is the turn rotation of the current digit  eg. 1500 the turn rotation of the first digit is 0.5, where 0 is 0% and 1 is 100%
     currentTurnRotation.push(startJoined / Math.pow(10, startDigitMatchedCount - 1 - index))
     differenceArr.push(difference / Math.pow(10, startDigitMatchedCount - 1 - index))
-    turnsArr.push(Math.floor((startJoined / Math.pow(10, startDigitMatchedCount - 1 - index)) + (difference / Math.pow(10, startDigitMatchedCount - 1 - index))))
+    if(direction === 'forward') {
+      turnsArr.push(Math.floor((startJoined / Math.pow(10, startDigitMatchedCount - 1 - index)) + (difference / Math.pow(10, startDigitMatchedCount - 1 - index))))
+    } else if(direction === 'backward') {
+      turnsArr.push(Math.abs(Math.floor((startJoined / Math.pow(10, startDigitMatchedCount - 1 - index)) - (difference / Math.pow(10, startDigitMatchedCount - 1 - index)))))
+    }
 
+    console.log('currentTurnRotation ', currentTurnRotation)
+    console.log('startJoined ', startJoined)
+    console.log('startDigitMatchedCount ', startDigitMatchedCount)
+    console.log('Math.pow(10, startDigitMatchedCount - 1 - index) ', Math.pow(10, startDigitMatchedCount - 1 - index))
+    console.log('---------------------------------')
     const startJoinedString = startJoined.toString().substr(1)
     startJoined = startJoinedString !== '' ? parseInt(startJoinedString, 10) : 0
     return null
   })
+
+  console.log('turnsArr ', turnsArr)
 
   return turnsArr
 }
@@ -122,14 +145,14 @@ export const Odometer = ({ start, end, duration = 1000, animation = 'turn', maxT
     endDigitsMatched = Array(Math.abs(countDifference)).fill(0).concat(endDigits)
   }
 
-  const turnsArr = GetTurns({ startDigitsMatched, difference })
+  const turnsArr = GetTurns({ startDigitsMatched, difference, direction })
   const rows = []
 
   // Prefix
   if (prefix !== '') {
     rows.push(
       <DigitStyled key={'prefix'} viewport={viewport} theme={theme} customStyling={customStyling}>
-        <DigitContainerStyled count={digitCount - 1} turnCount={0} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>{prefix}</DigitContainerStyled>
+        <DigitContainerStyled count={digitCount - 1} turnCount={0} direction={direction} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>{prefix}</DigitContainerStyled>
       </DigitStyled>
     )
   }
@@ -141,7 +164,9 @@ export const Odometer = ({ start, end, duration = 1000, animation = 'turn', maxT
 
     rows.push(
       <DigitStyled key={index} viewport={viewport} theme={theme} customStyling={customStyling}>
-        <DigitContainerStyled count={digitCount - 1} turnCount={maxTurns} animation={animation} duration={duration} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>{NumString({ start: parseInt(startDigitsMatched[index], 10), end: parseInt(endDigitsMatched[index], 10), direction, turnCount: turnsArr[index], maxTurns, index })}</DigitContainerStyled>
+        <DigitContainerStyled count={digitCount - 1} turnCount={maxTurns} direction={direction} animation={animation} duration={duration} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>
+          {NumString({ start: parseInt(startDigitsMatched[index], 10), end: parseInt(endDigitsMatched[index], 10), direction, turnCount: turnsArr[index], maxTurns, index })}
+        </DigitContainerStyled>
       </DigitStyled>
     )
 
@@ -149,7 +174,7 @@ export const Odometer = ({ start, end, duration = 1000, animation = 'turn', maxT
     if (index === digitCount - 3) {
       rows.push(
         <DigitStyled isDecimal={true} key='decimal' viewport={viewport} theme={theme} customStyling={customStyling}>
-          <DigitContainerStyled count={digitCount - 1} turnCount={0} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>.</DigitContainerStyled>
+          <DigitContainerStyled count={digitCount - 1} turnCount={0} direction={direction} startAnim={startAnim} viewport={viewport} easing={easing} theme={theme}>.</DigitContainerStyled>
         </DigitStyled>
       )
     }
