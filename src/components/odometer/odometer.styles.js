@@ -95,13 +95,12 @@ export const DigitContainerStyled = styled('div')(
     animationFillMode: 'forwards',
     display: 'flex',
     position: 'relative',
-    animationDelay: '1000ms',
   },
   ({ viewport }) => ({
     lineHeight: viewport,
   }),
   ({ startAnim, viewport, direction }) => ({
-    transform:  direction === 'forward' ? 'translateY(0)' : 'translateY(-100%) translateY(1.7em)',
+    transform:  direction === 'forward' ? 'translateY(0)' : `translateY(-100%) translateY(${viewport}em)`,
     animationName: startAnim ? direction === 'forward' ? `${slideUp(viewport)}` : `${slideDown(viewport)}` : 'none',
   }),
   ({ turnCount, animation, easing })  => {
